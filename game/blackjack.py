@@ -22,20 +22,16 @@ def hand_total(hand):
     total = 0
     ace_found = False
     soft = False
-
     for card in hand:
         if card.value >= 10:
             total += 10
         else:
             total += card.value
-
         if card.value == 1:
             ace_found = True;
-
     if total < 12 and ace_found:
         total += 10
         soft = True
-
     return total, soft
 
 class Card(object):

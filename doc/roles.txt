@@ -1,3 +1,14 @@
-Brad -> 
-Adam -> 
-Tyler -> 
+DONE:
+
+	Brad -> Add classes to BJ game
+			Structure PY project
+	Adam -> ?
+
+	Tyler -> ? 
+
+TODO: 
+	- make CSV file to "teach" our program 
+	- learning methods 
+	- output (GUI)(boxes for cards rather than lines of text)
+	- Documentation
+	- Power Point Slides 
