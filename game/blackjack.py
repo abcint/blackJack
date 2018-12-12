@@ -1,22 +1,25 @@
 import random
 
 def printIntro(): 
-	print("BlackJack AI - Final Project") 
-	print("https://github.com/brs80/blackjack\n")
+	print("BlackJack AI December 2018") 
+	print("https://github.com/brs80/blackjack.git\n")
 
 def startGame(): 
-    playscore = 0
-    dealscore = 0
-    deck = Deck()
-    deck.shuffle()
-    player = Player()
-    player.draw(deck)
-    print("\nPlayer Hand:")
-    player.showHand()
-    dealer = Dealer()
-    dealer.draw(deck)
-    print("\nDealer Hand:")
-    dealer.showHand()
+	playscore = 0
+	dealscore = 0
+	deck = Deck()
+	deck.shuffle()
+	player = Player()
+	dealer = Dealer()
+	player.draw(deck)
+	dealer.draw(deck)
+	printTable(player, dealer)
+
+def printTable(player, dealer):
+	print("\nPlayer Hand:")
+	player.showHand()
+	print("\nDealer Hand:")
+	dealer.showHand()
 
 def hand_total(hand):
     total = 0
