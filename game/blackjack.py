@@ -11,12 +11,32 @@ def startGame():
     deck.shuffle()
     player = Player()
     player.draw(deck)
-    print("player Hand:")
+    print("\nPlayer Hand:")
     player.showHand()
     dealer = Dealer()
     dealer.draw(deck)
-    print("dealer Hand:")
+    print("\nDealer Hand:")
     dealer.showHand()
+
+def hand_total(hand):
+    total = 0
+    ace_found = False
+    soft = False
+
+    for card in hand:
+        if card.value >= 10:
+            total += 10
+        else:
+            total += card.value
+
+        if card.value == 1:
+            ace_found = True;
+
+    if total < 12 and ace_found:
+        total += 10
+        soft = True
+
+    return total, soft
 
 class Card(object):
     def __init__(self,suit,value):
@@ -57,8 +77,10 @@ class Player(object):
         for num in range(1,3):
             self.hand.append(deck.drawCard())
     def showHand(self):
+        total = hand_total(self.hand)
         for card in self.hand:
             card.show()
+        print("Score: {}\nAce in hand: {}".format(total[0], total[1]))
 
 class Dealer(object):
     def __init__(self):
@@ -67,5 +89,7 @@ class Dealer(object):
         for num in range(1,3):
             self.hand.append(deck.drawCard())
     def showHand(self):
+        total = hand_total(self.hand)
         for card in self.hand:
             card.show()
+        print("Score: {}\nAce in hand: {}".format(total[0], total[1]))
