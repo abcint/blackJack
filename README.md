@@ -1,4 +1,6 @@
-##black jack program final project AI 
+## black jack program final project AI
+
+ 
 back end learning method -> naive bayesian 
 output to console
  
