@@ -1,20 +1,38 @@
 import random
 
 def printIntro(): 
-	print("BlackJack AI December 2018") 
-	print("https://github.com/brs80/blackjack.git\n")
+    print("BlackJack AI December 2018") 
+    print("https://github.com/brs80/blackjack.git\n")
+    print("You are given 500 chips to start.")
+
+def printWager(player): 
+    print("Chips remaining: {}".format(player.getMoney()))
+    print("(1) 5 chips")
+    print("(2) 10 chips")
+    print("(3) 50 chips")
+    print("(4) 100 chips")
+    print("(5) other")
+    wager = input("Place your wager-> ")
+    int(wager)
+    if int(wager) > player.getMoney():
+        print("wager too high")
+        printWager(player)
+    if int(wager) < 0: 
+        print("wager too low")
+        printWager(player)
+    return wager
 
 def startGame(): 
-	playscore = 0
-	dealscore = 0
-	deck = Deck()
-	deck.shuffle()
-	player = Player()
-	dealer = Dealer()
-	player.draw(deck)
-	dealer.draw(deck)
-	printTable(player, dealer)
-
+    deck = Deck()
+    deck.shuffle()
+    player = Player()
+    dealer = Dealer()
+    player.draw(deck)
+    dealer.draw(deck)
+    printTable(player, dealer)
+    wager = printWager(player)
+    player.setMoney(wager)
+    
 def printTable(player, dealer):
 	print("\nPlayer Hand:")
 	player.showHand()
@@ -72,14 +90,20 @@ class Deck(object):
 class Player(object):
     def __init__(self):
         self.hand = []
+        self.money = 500
     def draw(self,deck):
         for num in range(1,3):
             self.hand.append(deck.drawCard())
+    def getMoney(self): 
+        return self.money
+    def setMoney(self, wager): 
+        self.money = self.money - int(wager)
     def showHand(self):
         total = hand_total(self.hand)
         for card in self.hand:
             card.show()
         print("Score: {}\nAce in hand: {}".format(total[0], total[1]))
+        print("Money left: ".format(self.money))
 
 class Dealer(object):
     def __init__(self):
