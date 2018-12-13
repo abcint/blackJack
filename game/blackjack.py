@@ -27,12 +27,13 @@ def startGame():
     deck.shuffle()
     player = Player()
     dealer = Dealer()
-    player.draw(deck)
-    dealer.draw(deck)
-    printTable(player, dealer)
-    wager = printWager(player)
-    player.setMoney(wager)
-    
+    while player.getMoney() > 0:
+        player.draw(deck)
+        dealer.draw(deck)
+        printTable(player, dealer)
+        wager = printWager(player)
+        player.setMoney(wager)
+
 def printTable(player, dealer):
 	print("\nPlayer Hand:")
 	player.showHand()
