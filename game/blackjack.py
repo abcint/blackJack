@@ -83,6 +83,7 @@ class Card(object):
 class Deck(object):
     def __init__(self):
         self.cards = []
+        self.discardCount = [0 for i in range(13)]
         self.build()
 
     def build(self):
@@ -98,7 +99,9 @@ class Deck(object):
         random.shuffle(self.cards)
 
     def drawCard(self):
-        return self.cards.pop()
+        c = self.cards.pop()
+        self.discard[c.value] += 1
+        return c
 
 
 class Player(object):
