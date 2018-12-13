@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 
 def printIntro():
@@ -27,7 +28,6 @@ def printWager(player):
 
 def startGame():
     deck = Deck()
-    deck.shuffle()
     player = Player()
     dealer = Dealer()
     while player.getMoney() > 0:
@@ -59,7 +59,7 @@ def hand_total(hand):
     if total < 12 and ace_found:
         total += 10
         soft = True
-    return total, soft
+    return total, ace_found
 
 
 class Card(object):
@@ -80,63 +80,155 @@ class Card(object):
             print("{} of {}".format(self.value, self.suit))
 
 
+class DeckEmptyError(Exception):
+    pass
+
+
 class Deck(object):
     def __init__(self):
         self.cards = []
-        self.discardCount = [0 for i in range(13)]
+        self.discardCount = [0 for i in range(14)]
         self.build()
 
     def build(self):
+        self.cards = []
+        self.discardCount = [0 for i in range(14)]
         for suit in ("Spades", "Clubs", "Diamonds", "Hearts"):
             for value in range(1, 14):
                 self.cards.append(Card(suit, value))
+        random.shuffle(self.cards)
 
     def show(self):
         for card in self.cards:
             card.show()
 
-    def shuffle(self):
-        random.shuffle(self.cards)
+    def addtoDiscard(self, card):
+        self.discardCount[card.value] += 1
+
+    def cardsRemaining(self):
+        return len(self.cards)
 
     def drawCard(self):
-        c = self.cards.pop()
-        self.discard[c.value] += 1
-        return c
+        if not self.cardsRemaining():
+            raise DeckEmptyError
+        return self.cards.pop()
 
 
-class Player(object):
+class CardHolder(object):
     def __init__(self):
         self.hand = []
-        self.money = 500
 
     def draw(self, deck):
         for num in range(1, 3):
             self.hand.append(deck.drawCard())
 
+    def hit(self, deck):
+        self.hand.append(deck.drawCard())
+
+    def discardHand(self, deck):
+        for c in self.hand:
+            deck.addtoDiscard(c)
+        self.hand = []
+
+    def handScore(self):
+        return hand_total(self.hand)
+
+    def showHand(self):
+        total = hand_total(self.hand)
+        for card in self.hand:
+            card.show()
+        print("Score: {}\nAce in hand: {}".format(total[0], total[1]))
+
+
+class Player(CardHolder, object):
     def getMoney(self):
         return self.money
 
     def setMoney(self, wager):
         self.money = self.money - int(wager)
 
-    def showHand(self):
-        total = hand_total(self.hand)
-        for card in self.hand:
-            card.show()
-        print("Score: {}\nAce in hand: {}".format(total[0], total[1]))
-        print("Money left: ".format(self.money))
+
+class Dealer(CardHolder, object):
+    def gameHandValue(self):
+        return self.hand[0].value
 
 
-class Dealer(object):
+class Game(object):
     def __init__(self):
-        self.hand = []
+        self.dealer = Dealer()
+        self.player = Player()
+        self.deck = Deck()
+        self.n_actions = 2
+        self.n_features = 17
+        self.wins = 0
+        self.games = 0
 
-    def draw(self, deck):
-        for num in range(1, 3):
-            self.hand.append(deck.drawCard())
+    def showState(self):
+        self.dealer.showHand()
+        self.player.showHand()
 
-    def showHand(self):
-        total = hand_total(self.hand)
-        for card in self.hand:
-            card.show()
-        print("Score: {}\nAce in hand: {}".format(total[0], total[1]))
+    def new_round(self):
+        self.player.discardHand(self.deck)
+        self.dealer.discardHand(self.deck)
+        self.dealer.draw(self.deck)
+        self.player.draw(self.deck)
+        h, s = self.player.handScore()
+        return (np.append(np.array([h/21, s, self.dealer.gameHandValue()/21]),
+                          [x/4 for x in self.deck.discardCount]))
+
+    def shuffle(self):
+        winRate = self.wins/self.games
+        self.games = 0
+        self.wins = 0
+        self.deck.build()
+        return winRate
+
+    def step(self, action):
+        # hit
+        done = False
+        reward = 0
+        if action == 0:
+            self.player.hit(self.deck)
+            if self.player.handScore()[0] > 21:
+                reward = -1
+                done = True
+                self.games += 1
+
+        # stay
+        elif action == 1:
+            done = True
+            self.games += 1
+            score = self.player.handScore()[0]
+            while True:
+                if self.dealer.handScore()[0] >= 17:
+                    break
+                self.dealer.hit(self.deck)
+            d_score = self.dealer.handScore()[0]
+            if score > d_score or d_score > 21:
+                reward = 1
+                self.wins += 1
+            elif score == d_score:
+                reward = 0
+            else:
+                reward = -1
+        else:
+            raise ValueError('Illegal action passed')
+
+        h, s = self.player.handScore()
+        s_ = (np.append(np.array([h/21, s, self.dealer.gameHandValue()/21]),
+              [x/4 for x in self.deck.discardCount]))
+        return s_, reward, done
+
+
+if __name__ == '__main__':
+    NewGame = Game()
+    NewGame.reset()
+    while True:
+        a = int(input())
+        s_, reward, done = NewGame.step(a)
+        print(s_)
+        print(reward, done)
+        if done:
+            print("round over drawing new hand")
+            input()
+            NewGame.new_round()
